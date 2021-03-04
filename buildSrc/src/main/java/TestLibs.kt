@@ -1,0 +1,5 @@
+/**
+ * Dependency coordinates.
+ */
+object TestLibs {
+}
