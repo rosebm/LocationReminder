@@ -48,6 +48,7 @@ object Dependencies {
     const val hamcrest = "org.hamcrest:hamcrest-all:${Versions.hamcrest}"
     // Dependencies for local unit tests
     const val junit = "junit:junit:${Versions.junit}"
+    const val firebaseUi = "com.firebaseui:firebase-ui-auth:${Versions.firebaseUi}"
 
     //Koin
     object Koin {

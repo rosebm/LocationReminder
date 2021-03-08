@@ -9,6 +9,7 @@ import com.rosalynbm.locationreminder.base.NavigationCommand
 import com.rosalynbm.locationreminder.databinding.FragmentRemindersBinding
 import com.rosalynbm.locationreminder.utils.setDisplayHomeAsUpEnabled
 import com.rosalynbm.locationreminder.utils.setTitle
+import com.rosalynbm.locationreminder.utils.setup
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ReminderListFragment : BaseFragment() {
