@@ -4,6 +4,7 @@ package com.rosalynbm.locationreminder.locationreminders.savereminder.selectremi
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
@@ -16,25 +17,31 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.rosalynbm.locationreminder.R
 import com.rosalynbm.locationreminder.base.BaseFragment
 import com.rosalynbm.locationreminder.databinding.FragmentSelectLocationBinding
 import com.rosalynbm.locationreminder.locationreminders.savereminder.SaveReminderViewModel
 import com.rosalynbm.locationreminder.utils.setDisplayHomeAsUpEnabled
+import kotlinx.android.synthetic.main.fragment_select_location.*
 import org.koin.android.ext.android.inject
 import timber.log.Timber
+import java.lang.Exception
 import java.util.*
 
 
-class SelectLocationFragment: BaseFragment(), OnMapReadyCallback {
+class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickListener {
 
     //Use Koin to get the view model of the SaveReminder
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSelectLocationBinding
     private var map: GoogleMap? = null
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private var selectedLocation: LatLng? = null
+    private val TAG = SelectLocationFragment::class.java.simpleName
 
     companion object {
         private val PERMISSION_ID = 19
@@ -46,6 +53,7 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback {
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
+
         binding =
                 DataBindingUtil.inflate(inflater, R.layout.fragment_select_location, container, false)
 
@@ -55,15 +63,10 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback {
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(true)
 
-//        TODO: add the map setup implementation
-//        TODO: zoom to the user location after taking his permission
-//        TODO: add style to the map
-//        TODO: put a marker to location that the user selected
         initSupportMapFragment()
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
-//        TODO: call this function after the user confirms on the selected location
-        onLocationSelected()
+        binding.locationSaveButton.setOnClickListener(this)
 
         return binding.root
     }
@@ -78,6 +81,9 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback {
         //        TODO: When the user confirms on the selected location,
         //         send back the selected location details to the view model
         //         and navigate back to the previous fragment to save the reminder and add the geofence
+
+        Timber.d("ROS saving location (${selectedLocation?.latitude}, ${selectedLocation?.longitude})")
+
     }
 
 
@@ -119,13 +125,13 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap?) {
         map = googleMap
+        setMapStyle(map)
         getLastLocation()
         setOnMapLongClickListener()
     }
 
     private fun setOnMapLongClickListener() {
         map?.setOnMapLongClickListener { latLng ->
-
             //displays additional info
             val snippet = String.format(
                     Locale.getDefault(),
@@ -138,7 +144,12 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback {
                             .position(latLng)
                             .title(requireContext().resources.getString(R.string.dropped_pin))
                             .snippet(snippet)
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
             )
+            Timber.d("ROS setOnMapLongClickListener")
+
+            _viewModel.saveSelectedLocation(latLng)
+            locationSaveButton.visibility = View.VISIBLE
         }
     }
 
@@ -197,6 +208,31 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback {
         }
 
         return enabled
+    }
+
+    override fun onClick(view: View?) {
+        when (view?.id) {
+            R.id.locationSaveButton -> onLocationSelected()
+        }
+    }
+
+    private fun setMapStyle(map: GoogleMap?) {
+        try {
+            // Customize the styling of the base map using a JSON object defined
+            // in a raw resource file.
+            val success = map?.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(
+                    requireContext(),
+                    R.raw.map_style
+                )
+            ) ?: false
+
+            if (success)
+                Timber.e("$TAG, Style parsing failed.")
+
+        } catch (ex: Resources.NotFoundException) {
+            Timber.e("Error styling the map: ${ex.localizedMessage}")
+        }
     }
 
 }

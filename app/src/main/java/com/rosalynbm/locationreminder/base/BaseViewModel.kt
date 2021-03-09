@@ -3,6 +3,7 @@ package com.rosalynbm.locationreminder.base
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import com.google.android.gms.maps.model.LatLng
 import com.rosalynbm.locationreminder.utils.SingleLiveEvent
 
 /**
@@ -17,5 +18,13 @@ abstract class BaseViewModel(app: Application) : AndroidViewModel(app) {
     val showToast: SingleLiveEvent<String> = SingleLiveEvent()
     val showLoading: SingleLiveEvent<Boolean> = SingleLiveEvent()
     val showNoData: MutableLiveData<Boolean> = MutableLiveData()
+
+    private var selectedLocation: LatLng? = null
+
+    fun saveSelectedLocation(latLng: LatLng) {
+        selectedLocation = latLng
+    }
+
+    fun getSelectedLocation() = selectedLocation
 
 }

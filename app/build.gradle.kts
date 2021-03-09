@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.konan.properties.Properties
+
 plugins {
     id(Plugins.androidApp)
     id(Plugins.googleServices)
@@ -7,8 +9,18 @@ plugins {
     kotlin(Plugins.kotlinAndroidExtensions)
 }
 
-fun Project.propertyOrEmpty(name: String): String {
-    return findProperty(name) as String? ?: ""
+fun getPassword(): String  {
+    var pass = ""
+    val props = Properties()
+    val propFile = file("../signing/apikey.properties")
+
+    if (propFile.canRead()) {
+        props.load(project.rootProject.file(propFile).inputStream())
+
+        pass = props.getProperty("STORE_PASSWORD") ?: ""
+    }
+
+    return pass
 }
 
 android {
@@ -17,9 +29,10 @@ android {
         create("release") {
 
             storeFile = file("../signing/location2.keystore")
-            storePassword = "XXXXXXX."
+            storePassword = getPassword()
             keyAlias = "location_key"
-            keyPassword = "XXXXXXX."
+            keyPassword = getPassword()
+
         }
     }
     compileSdkVersion(Config.compileSdk)
