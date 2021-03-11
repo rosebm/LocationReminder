@@ -34,6 +34,7 @@ object Versions {
     const val androidXTestRules = "1.2.0-beta01"
     const val archTesting = "2.0.0"
     const val espresso = "3.2.0"
+    const val firebaseUi = "7.1.1"
     const val hamcrest = "1.3"
     const val junit = "4.12"
     const val playServices = "17.0.0"

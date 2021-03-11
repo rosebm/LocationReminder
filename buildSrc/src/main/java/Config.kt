@@ -5,7 +5,7 @@ object Config {
 
     // Sdk and tools
     // Support library and architecture components support minSdk 14 and above.
-    const val minSdk = 16
+    const val minSdk = 23
     const val targetSdk = 30
     const val compileSdk = 30
     const val versionCode = 1

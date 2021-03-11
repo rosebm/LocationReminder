@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.konan.properties.Properties
+
 plugins {
     id(Plugins.androidApp)
     id(Plugins.googleServices)
@@ -7,8 +9,18 @@ plugins {
     kotlin(Plugins.kotlinAndroidExtensions)
 }
 
-fun Project.propertyOrEmpty(name: String): String {
-    return findProperty(name) as String? ?: ""
+fun getPassword(): String  {
+    var pass = ""
+    val props = Properties()
+    val propFile = file("../signing/apikey.properties")
+
+    if (propFile.canRead()) {
+        props.load(project.rootProject.file(propFile).inputStream())
+
+        pass = props.getProperty("STORE_PASSWORD") ?: ""
+    }
+
+    return pass
 }
 
 android {
@@ -16,10 +28,11 @@ android {
     signingConfigs {
         create("release") {
 
-            storeFile = file("../signing/apikey.keystore")
-            storePassword = propertyOrEmpty("STORE_PASSWORD")
-            keyAlias = propertyOrEmpty("location_key")
-            keyPassword = propertyOrEmpty("KEY_PASSWORD")
+            storeFile = file("../signing/location2.keystore")
+            storePassword = getPassword()
+            keyAlias = "location_key"
+            keyPassword = getPassword()
+
         }
     }
     compileSdkVersion(Config.compileSdk)
@@ -31,11 +44,14 @@ android {
         versionCode = Config.versionCode
         versionName = Config.versionName
         testInstrumentationRunner = Config.testInstrumentationRunner
+
+        resConfigs("en") //To limit the lamguages available from Firebase translations
     }
 
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
+            isDebuggable = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
         }
@@ -53,13 +69,14 @@ android {
         returnDefaultValues = true
     }
 
-    //dataBinding {
-    //    enabled = true
-    //    enabledForTests = true
-    //}
-    buildFeatures {
-        dataBinding true
+    dataBinding {
+        enabled = true
+        enabledForTests = true
     }*/
+
+    buildFeatures {
+        dataBinding = true
+    }
 
 }
 
@@ -71,80 +88,81 @@ dependencies {
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation 'com.google.firebase:firebase-analytics-ktx'*/
     // App dependencies
-    implementation(Dependencies.Androidx.appCompact) //androidx.appcompat:appcompat:$appCompatVersion"
-    implementation(Dependencies.Androidx.legacySupport)// "androidx.legacy:legacy-support-v4:$androidXLegacySupport"
-    implementation(Dependencies.Androidx.annotations) // "androidx.annotation:annotation:$androidXAnnotations"
+    implementation(Dependencies.Androidx.appCompact)
+    implementation(Dependencies.Androidx.legacySupport)
+    implementation(Dependencies.Androidx.annotations)
 
-    implementation(Dependencies.Androidx.cardView) // "androidx.cardview:cardview:$cardVersion"
-    implementation(Dependencies.Google.material) // "com.google.android.material:material:$materialVersion"
-    implementation(Dependencies.Androidx.recyclerView) //"androidx.recyclerview:recyclerview:$recyclerViewVersion"
-    implementation(Dependencies.Androidx.constraintLayout) // "androidx.constraintlayout:constraintlayout:$constraintVersion"
+    implementation(Dependencies.Androidx.cardView)
+    implementation(Dependencies.Google.material)
+    implementation(Dependencies.Androidx.recyclerView)
+    implementation(Dependencies.Androidx.constraintLayout)
 
-    implementation(Dependencies.Google.gson) // 'com.google.code.gson:gson:2.8.5'
+    implementation(Dependencies.Google.gson)
 
     // Architecture Components
     //Navigation dependencies
-    implementation(Dependencies.Androidx.appCompact) //'androidx.appcompat:appcompat:1.2.0'
-    kapt(Dependencies.Androidx.lifecycleCompiler) //"androidx.lifecycle:lifecycle-compiler:$archLifecycleVersion"
-    implementation(Dependencies.Androidx.lifecycleExt) //"androidx.lifecycle:lifecycle-extensions:$archLifecycleVersion"
-    implementation(Dependencies.Androidx.lifecycleViewModel) //"androidx.lifecycle:lifecycle-viewmodel-ktx:$archLifecycleVersion"
-    implementation(Dependencies.Androidx.lifecycleLivedata) //"androidx.lifecycle:lifecycle-livedata-ktx:$archLifecycleVersion"
-    implementation(Dependencies.Androidx.navigationFragment) //"androidx.navigation:navigation-fragment-ktx:$navigationVersion"
-    implementation(Dependencies.Androidx.navigationUi) //"androidx.navigation:navigation-ui-ktx:$navigationVersion"
-    implementation(Dependencies.Androidx.espressoIdlingResource) // "androidx.test.espresso:espresso-idling-resource:$espressoVersion"
+    implementation(Dependencies.Androidx.appCompact)
+    kapt(Dependencies.Androidx.lifecycleCompiler)
+    implementation(Dependencies.Androidx.lifecycleExt)
+    implementation(Dependencies.Androidx.lifecycleViewModel)
+    implementation(Dependencies.Androidx.lifecycleLivedata)
+    implementation(Dependencies.Androidx.navigationFragment)
+    implementation(Dependencies.Androidx.navigationUi)
+    implementation(Dependencies.Androidx.espressoIdlingResource)
 
     //Room dependencies
-    implementation(Dependencies.Androidx.room) //"androidx.room:room-ktx:$roomVersion"
-    implementation(Dependencies.Androidx.roomRuntime) //"androidx.room:room-runtime:$roomVersion"
-    kapt(Dependencies.Androidx.roomCompiler) //"androidx.room:room-compiler:$roomVersion"
+    implementation(Dependencies.Androidx.room)
+    implementation(Dependencies.Androidx.roomRuntime)
+    kapt(Dependencies.Androidx.roomCompiler)
 
     //Coroutines Dependencies
-    implementation(Dependencies.Kotlin.coroutine) //"org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
+    implementation(Dependencies.Kotlin.coroutine)
 
     //Koin
-    implementation(Dependencies.Koin.android) //"org.koin:koin-android:$koinVersion"
-    implementation(Dependencies.Koin.viewModel) //"org.koin:koin-androidx-viewmodel:$koinVersion"
+    implementation(Dependencies.Koin.android)
+    implementation(Dependencies.Koin.viewModel)
 
 
     // Dependencies for local unit tests
-    testImplementation(Dependencies.junit) //"junit:junit:$junitVersion"
-    testImplementation(Dependencies.hamcrest) // "org.hamcrest:hamcrest-all:$hamcrestVersion"
-    testImplementation(Dependencies.Androidx.aarchCoreTesting) // "androidx.arch.core:core-testing:$archTestingVersion"
-    testImplementation(Dependencies.Kotlin.coroutine)// "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
-    testImplementation(Dependencies.Kotlin.coroutineTest) // "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion"
-    testImplementation(Dependencies.Roboelectric.roboelectric) //"org.robolectric:robolectric:$robolectricVersion"
-    testImplementation(Dependencies.Google.truth) //"com.google.truth:truth:$truthVersion"
-    testImplementation(Dependencies.mockitoCore) //"org.mockito:mockito-core:$mockitoVersion"
+    testImplementation(Dependencies.junit)
+    testImplementation(Dependencies.hamcrest)
+    testImplementation(Dependencies.Androidx.aarchCoreTesting)
+    testImplementation(Dependencies.Kotlin.coroutine)
+    testImplementation(Dependencies.Kotlin.coroutineTest)
+    testImplementation(Dependencies.Roboelectric.roboelectric)
+    testImplementation(Dependencies.Google.truth)
+    testImplementation(Dependencies.mockitoCore)
 
     // AndroidX Test - JVM testing
-    testImplementation(Dependencies.Androidx.testCoreKtx) //"androidx.test:core-ktx:$androidXTestCoreVersion"
-    testImplementation(Dependencies.Androidx.testJunit) //"androidx.test.ext:junit-ktx:$androidXTestExtKotlinRunnerVersion"
-    testImplementation(Dependencies.Androidx.testRules) //"androidx.test:rules:$androidXTestRulesVersion"
+    testImplementation(Dependencies.Androidx.testCoreKtx)
+    testImplementation(Dependencies.Androidx.testJunit)
+    testImplementation(Dependencies.Androidx.testRules)
 
     // AndroidX Test - Instrumented testing
-    androidTestImplementation(Dependencies.Androidx.testCoreKtx) //"androidx.test:core-ktx:$androidXTestCoreVersion"
-    androidTestImplementation(Dependencies.Androidx.testJunit) //"androidx.test.ext:junit-ktx:$androidXTestExtKotlinRunnerVersion"
-    androidTestImplementation(Dependencies.Kotlin.coroutineTest) //"org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion"
-    androidTestImplementation(Dependencies.Androidx.testRules) //"androidx.test:rules:$androidXTestRulesVersion"
-    androidTestImplementation(Dependencies.Androidx.roomTesting) //"androidx.room:room-testing:$roomVersion"
-    androidTestImplementation(Dependencies.Androidx.aarchCoreTesting) //"androidx.arch.core:core-testing:$archTestingVersion"
-    androidTestImplementation(Dependencies.Roboelectric.annotations) //"org.robolectric:annotations:$robolectricVersion"
-    androidTestImplementation(Dependencies.Androidx.espressoCore) //"androidx.test.espresso:espresso-core:$espressoVersion"
-    androidTestImplementation(Dependencies.Androidx.espressoContrib) //"androidx.test.espresso:espresso-contrib:$espressoVersion"
-    androidTestImplementation(Dependencies.Androidx.espressoIntents) //"androidx.test.espresso:espresso-intents:$espressoVersion"
-    androidTestImplementation(Dependencies.Androidx.espressoIdlingConcurrent) //"androidx.test.espresso.idling:idling-concurrent:$espressoVersion"
-    androidTestImplementation(Dependencies.junit) //"junit:junit:$junitVersion"
+    androidTestImplementation(Dependencies.Androidx.testCoreKtx)
+    androidTestImplementation(Dependencies.Androidx.testJunit)
+    androidTestImplementation(Dependencies.Kotlin.coroutineTest)
+    androidTestImplementation(Dependencies.Androidx.testRules)
+    androidTestImplementation(Dependencies.Androidx.roomTesting)
+    androidTestImplementation(Dependencies.Androidx.aarchCoreTesting)
+    androidTestImplementation(Dependencies.Roboelectric.annotations)
+    androidTestImplementation(Dependencies.Androidx.espressoCore)
+    androidTestImplementation(Dependencies.Androidx.espressoContrib)
+    androidTestImplementation(Dependencies.Androidx.espressoIntents)
+    androidTestImplementation(Dependencies.Androidx.espressoIdlingConcurrent)
+    androidTestImplementation(Dependencies.junit)
     // Once https://issuetracker.google.com/127986458 is fixed this can be testImplementation
-    implementation(Dependencies.Androidx.androidxFragmentTesting) //"androidx.fragment:fragment-testing:$fragmentVersion"
-    implementation(Dependencies.Androidx.testCore) //"androidx.test:core:$androidXTestCoreVersion"
-    implementation(Dependencies.Androidx.fragment) //"androidx.fragment:fragment:$fragmentVersion"
-    androidTestImplementation(Dependencies.mockitoCore) //"org.mockito:mockito-core:$mockitoVersion"
-    androidTestImplementation(Dependencies.linkedinDexmakerMockito) //"com.linkedin.dexmaker:dexmaker-mockito:$dexMakerVersion"
+    implementation(Dependencies.Androidx.androidxFragmentTesting)
+    implementation(Dependencies.Androidx.testCore)
+    implementation(Dependencies.Androidx.fragment)
+    androidTestImplementation(Dependencies.mockitoCore)
+    androidTestImplementation(Dependencies.linkedinDexmakerMockito)
     androidTestImplementation(Dependencies.Koin.test) { exclude ("org.mockito", "mockito")}
 
+    implementation(Dependencies.firebaseUi)
     //Maps & Geofencing
-    implementation(Dependencies.PlayServices.location)  //"com.google.android.gms:play-services-location:$playServicesVersion"
-    implementation(Dependencies.PlayServices.maps) //"com.google.android.gms:play-services-maps:$playServicesVersion"
-}
+    implementation(Dependencies.PlayServices.location)
+    implementation(Dependencies.PlayServices.maps)
 
-apply(plugin = "com.google.gms.google-services")
+    implementation(Dependencies.timber)
+}

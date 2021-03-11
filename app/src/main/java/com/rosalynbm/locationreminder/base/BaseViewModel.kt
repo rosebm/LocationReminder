@@ -3,6 +3,7 @@ package com.rosalynbm.locationreminder.base
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import com.google.android.gms.maps.model.LatLng
 import com.rosalynbm.locationreminder.utils.SingleLiveEvent
 
 /**
