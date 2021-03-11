@@ -19,12 +19,4 @@ abstract class BaseViewModel(app: Application) : AndroidViewModel(app) {
     val showLoading: SingleLiveEvent<Boolean> = SingleLiveEvent()
     val showNoData: MutableLiveData<Boolean> = MutableLiveData()
 
-    private var selectedLocation: LatLng? = null
-
-    fun saveSelectedLocation(latLng: LatLng) {
-        selectedLocation = latLng
-    }
-
-    fun getSelectedLocation() = selectedLocation
-
 }

@@ -11,6 +11,7 @@ import com.rosalynbm.locationreminder.locationreminders.data.ReminderDataSource
 import com.rosalynbm.locationreminder.locationreminders.data.dto.ReminderDTO
 import com.rosalynbm.locationreminder.locationreminders.reminderslist.ReminderDataItem
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSource) :
     BaseViewModel(app) {
@@ -46,6 +47,7 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
      * Save the reminder to the data source
      */
     fun saveReminder(reminderData: ReminderDataItem) {
+        Timber.d("ROS saveReminderInDb")
         showLoading.value = true
         viewModelScope.launch {
             dataSource.saveReminder(
@@ -68,6 +70,8 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
      * Validate the entered data and show error to the user if there's any invalid data
      */
     fun validateEnteredData(reminderData: ReminderDataItem): Boolean {
+        Timber.d("ROS validateEnteredData")
+
         if (reminderData.title.isNullOrEmpty()) {
             showSnackBarInt.value = R.string.err_enter_title
             return false
@@ -79,4 +83,14 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
         }
         return true
     }
+
+   /* private var selectedLocation: LatLng? = null
+
+    fun saveSelectedLocation(latLng: LatLng) {
+        selectedLocation = latLng
+        reminderSelectedLocationStr.value = "Here"
+    }
+
+    fun getSelectedLocation() = selectedLocation*/
+
 }

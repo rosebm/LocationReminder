@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.view.*
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
+import androidx.navigation.fragment.NavHostFragment
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -29,7 +30,6 @@ import com.rosalynbm.locationreminder.utils.setDisplayHomeAsUpEnabled
 import kotlinx.android.synthetic.main.fragment_select_location.*
 import org.koin.android.ext.android.inject
 import timber.log.Timber
-import java.lang.Exception
 import java.util.*
 
 
@@ -44,9 +44,10 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickLi
     private val TAG = SelectLocationFragment::class.java.simpleName
 
     companion object {
-        private val PERMISSION_ID = 19
-        private val ZOOM_LEVEL = 15f
+        private const val PERMISSION_ID = 19
+        private const val ZOOM_LEVEL = 15f
         private val MIAMI_LATLNG = LatLng(25.803760, -80.130895)
+        private const val REQUEST_LOCATION_PERMISSION = 1
     }
 
 
@@ -78,12 +79,8 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickLi
     }
 
     private fun onLocationSelected() {
-        //        TODO: When the user confirms on the selected location,
-        //         send back the selected location details to the view model
-        //         and navigate back to the previous fragment to save the reminder and add the geofence
-
         Timber.d("ROS saving location (${selectedLocation?.latitude}, ${selectedLocation?.longitude})")
-
+        NavHostFragment.findNavController(this).popBackStack()
     }
 
 
@@ -127,7 +124,32 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickLi
         map = googleMap
         setMapStyle(map)
         getLastLocation()
-        setOnMapLongClickListener()
+        setOnMapPoiClickListener()
+        //setOnMapLongClickListener()
+    }
+
+    private fun setOnMapPoiClickListener() {
+        map?.setOnPoiClickListener { poi ->
+            //displays additional info
+            val snippet = String.format(
+                Locale.getDefault(),
+                "Lat: %1$.5f, Long: %2$.5f",
+                poi.latLng.latitude,
+                poi.latLng.longitude
+            )
+            map?.addMarker(
+                MarkerOptions()
+                    .position(poi.latLng)
+                    .title(poi.name)
+                    .snippet(snippet)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+            )
+            Timber.d("ROS setOnMapLongClickListener")
+
+            _viewModel.selectedPOI.value = poi
+            _viewModel.reminderSelectedLocationStr.value = poi.name
+            locationSaveButton.visibility = View.VISIBLE
+        }
     }
 
     private fun setOnMapLongClickListener() {
@@ -148,7 +170,6 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickLi
             )
             Timber.d("ROS setOnMapLongClickListener")
 
-            _viewModel.saveSelectedLocation(latLng)
             locationSaveButton.visibility = View.VISIBLE
         }
     }
@@ -177,6 +198,7 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickLi
                             latLng = LatLng(location.latitude, location.longitude)
 
                             map?.let {
+                                Timber.d("ROS move camera")
                                 it.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM_LEVEL))
                                 it.addMarker(MarkerOptions().position(latLng).title("Marker in user's last location"))
                             }
@@ -227,8 +249,8 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickLi
                 )
             ) ?: false
 
-            if (success)
-                Timber.e("$TAG, Style parsing failed.")
+            if (!success)
+                Timber.e("Style parsing failed.")
 
         } catch (ex: Resources.NotFoundException) {
             Timber.e("Error styling the map: ${ex.localizedMessage}")
