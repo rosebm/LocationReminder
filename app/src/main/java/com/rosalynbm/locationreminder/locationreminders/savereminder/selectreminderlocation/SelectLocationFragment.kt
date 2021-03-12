@@ -148,6 +148,8 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickLi
 
             _viewModel.selectedPOI.value = poi
             _viewModel.reminderSelectedLocationStr.value = poi.name
+            _viewModel.latitude.value = poi.latLng.latitude
+            _viewModel.longitude.value = poi.latLng.longitude
             locationSaveButton.visibility = View.VISIBLE
         }
     }

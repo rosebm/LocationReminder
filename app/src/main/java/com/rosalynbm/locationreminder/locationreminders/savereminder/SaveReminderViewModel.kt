@@ -84,13 +84,6 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
         return true
     }
 
-   /* private var selectedLocation: LatLng? = null
 
-    fun saveSelectedLocation(latLng: LatLng) {
-        selectedLocation = latLng
-        reminderSelectedLocationStr.value = "Here"
-    }
-
-    fun getSelectedLocation() = selectedLocation*/
 
 }
