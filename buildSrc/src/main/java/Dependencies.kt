@@ -11,6 +11,8 @@ object Dependencies {
         const val aarchCoreTesting = "androidx.arch.core:core-testing:${Versions.archTesting}"
         const val cardView = "androidx.cardview:cardview:${Versions.cardView}"
         const val constraintLayout = "androidx.constraintlayout:constraintlayout:${Versions.androidxConstraint}"
+        // Android KTX for framework API
+        const val coreKtx = "androidx.core:core-ktx:${Versions.androidXCoreKtx}"
         const val espressoCore = "androidx.test.espresso:espresso-core:${Versions.espresso}"
         const val espressoContrib = "androidx.test.espresso:espresso-contrib:${Versions.espresso}"
         const val espressoIdlingConcurrent = "androidx.test.espresso.idling:idling-concurrent:${Versions.espresso}"

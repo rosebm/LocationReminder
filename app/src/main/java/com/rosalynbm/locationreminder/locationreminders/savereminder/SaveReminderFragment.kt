@@ -12,7 +12,9 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
@@ -23,7 +25,6 @@ import com.rosalynbm.locationreminder.base.BaseFragment
 import com.rosalynbm.locationreminder.base.NavigationCommand
 import com.rosalynbm.locationreminder.databinding.FragmentSaveReminderBinding
 import com.rosalynbm.locationreminder.locationreminders.geofence.GeofenceBroadcastReceiver
-import com.rosalynbm.locationreminder.locationreminders.geofence.GeofenceErrorMessages
 import com.rosalynbm.locationreminder.locationreminders.geofence.GeofenceRepository
 import com.rosalynbm.locationreminder.locationreminders.reminderslist.ReminderDataItem
 import com.rosalynbm.locationreminder.utils.GeofenceUtils
@@ -88,7 +89,6 @@ class SaveReminderFragment : BaseFragment() {
         }
 
         binding.saveReminder.setOnClickListener {
-            Timber.d("ROS saveReminder clicked")
             requestForegroundAndBackgroundLocationPermissions()
         }
 
@@ -128,7 +128,6 @@ class SaveReminderFragment : BaseFragment() {
                     grantResults[BACKGROUND_LOCATION_PERMISSION_INDEX] ==
                     PackageManager.PERMISSION_DENIED))
         {
-            Timber.d("ROS show snackbar ")
             // Display a snackbar explaining that the user needs location permissions in order to
             // trigger the reminders
             Snackbar.make(
@@ -181,7 +180,9 @@ class SaveReminderFragment : BaseFragment() {
         if (foregroundAndBackgroundLocationPermissionApproved()) {
             createReminder().let { reminder ->
                 _viewModel.validateAndSaveReminder(reminder)
-                buildGeofence(reminder)?.let { requestGeofence(it) }
+                buildGeofence(reminder)?.let {
+                    addGeofence(it)
+                }
             }
         }
 
@@ -203,7 +204,6 @@ class SaveReminderFragment : BaseFragment() {
     }
 
     private fun checkDeviceLocationSettingsAndStartGeofence() {
-        Timber.d("ROS checkDeviceLocationSettingsAndStartGeofence ")
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_LOW_POWER
         }
@@ -227,7 +227,6 @@ class SaveReminderFragment : BaseFragment() {
                     Timber.e("Error getting location settings resolution: ${sendEx.message}")
                 }
             } else {
-                Timber.d("ROS checkDeviceLocationSettingsAndStartGeofence Snackbar")
                 // Alerts the user that location needs to be enabled so the reminders can be used
                 Snackbar.make(
                     binding.root,
@@ -239,25 +238,13 @@ class SaveReminderFragment : BaseFragment() {
         }
 
         locationSettingsResponseTask.addOnCompleteListener {
-            if ( it.isSuccessful ) {
-                Timber.d("ROS successful ----->")
-                createReminder().let { it1 -> _viewModel.validateAndSaveReminder(it1) }
+            if (it.isSuccessful) {
+                createReminder().let { it1 ->
+                    _viewModel.validateAndSaveReminder(it1)
+                }
             }
         }
     }
-
-/*    private fun addGeofence() {
-        if (_viewModel.geofenceIsActive()) return
-
-        val currentGeofenceIndex = _viewModel.nextGeofenceIndex()
-        *//*if (currentGeofenceIndex >= GeofencingConstants.NUM_LANDMARKS) {
-            removeGeofences()
-            _viewModel.geofenceActivated()
-            return
-        }*//*
-
-        val currendGeofenceData = Geo
-    }*/
 
     private fun buildGeofence(reminderDataItem: ReminderDataItem): Geofence? {
 
@@ -277,50 +264,50 @@ class SaveReminderFragment : BaseFragment() {
         }
     }
 
-    private fun requestGeofence(geofence: Geofence) {
-
-        /*val geofencingRequest = GeofencingRequest.Builder()
-            .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
-            .addGeofence(geofence)
-            .build()*/
+    private fun addGeofence(geofence: Geofence) {
         val geofencingRequest = GeofenceRepository.buildGeofenceRequest(geofence)
 
+        if (ContextCompat.checkSelfPermission(requireContext(),
+            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        ) {
+            geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)
+                .addOnSuccessListener {
+                    /*Toast.makeText(requireActivity(), "geofences_added",
+                        Toast.LENGTH_SHORT)
+                        .show()*/
+                    Timber.e("Geofence added id = ${geofence.requestId}")
+                }
+                .addOnFailureListener {
+                    /* Toast.makeText(requireContext(), R.string.geofences_not_added,
+                    Toast.LENGTH_SHORT).show()*/
+                    if ((it.message != null)) {
+                        Timber.w("Geofence failure ${it.message}")
+                    }
+                    //ros uncomment failure(GeofenceErrorMessages.getErrorString(context, it))
+                }
+        }
+
+    }
+
+    /**
+     * Removes the geofence that don't need anymore, after consumed. Best practice to save battery
+     * and CPU cycles to stop monitoring.
+     */
+    private fun removeGeofences() {
+        if (!foregroundAndBackgroundLocationPermissionApproved()) {
+            return
+        }
         geofencingClient.removeGeofences(geofencePendingIntent)?.run {
-            addOnCompleteListener {
-                if (ActivityCompat.checkSelfPermission(
-                        requireContext(),
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    //return
-                }
-                geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
-                    addOnSuccessListener {
-                       /* Toast.makeText(requireActivity(), "geofences_added",
-                            Toast.LENGTH_SHORT)
-                            .show()*/
-                        Timber.e("ROS Add Geofence ${geofence?.requestId}")
-                        //viewModel.geofenceActivated()
-                    }
-                    addOnFailureListener {
-                       /* Toast.makeText(requireContext(), R.string.geofences_not_added,
-                            Toast.LENGTH_SHORT).show()*/
-                        if ((it.message != null)) {
-                            Timber.w("ROS geofence failure ${it.message}")
-                        }
-                        //failure(GeofenceErrorMessages.getErrorString(context, it))
-                    }
-                }
+            addOnSuccessListener {
+                Timber.d(getString(R.string.geofences_removed))
+                Toast.makeText(requireContext(), R.string.geofences_removed, Toast.LENGTH_SHORT)
+                    .show()
+            }
+            addOnFailureListener {
+                Timber.d(getString(R.string.geofences_not_removed))
+                //ros failure(GeofenceErrorMessages.getErrorString(context, it))
             }
         }
     }
-
 
 }

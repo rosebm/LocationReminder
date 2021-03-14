@@ -1,11 +1,13 @@
 package com.rosalynbm.locationreminder
 
 import android.app.Application
+import com.rosalynbm.locationreminder.authentication.AuthenticationViewModel
 import com.rosalynbm.locationreminder.locationreminders.data.ReminderDataSource
 import com.rosalynbm.locationreminder.locationreminders.data.local.LocalDB
 import com.rosalynbm.locationreminder.locationreminders.data.local.RemindersLocalRepository
 import com.rosalynbm.locationreminder.locationreminders.reminderslist.RemindersListViewModel
 import com.rosalynbm.locationreminder.locationreminders.savereminder.SaveReminderViewModel
+import com.rosalynbm.locationreminder.utils.NetworkMonitor
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
@@ -15,6 +17,9 @@ class MyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        //  To start cheking the network state, we fire up the callback
+        NetworkMonitor(this).startNetworkCallback()
+        val preferences = this.getSharedPreferences("LocationReminder", 0)
 
         /**
          * use Koin Library as a service locator
@@ -37,6 +42,10 @@ class MyApp : Application() {
             }
             single { RemindersLocalRepository(get()) as ReminderDataSource }
             single { LocalDB.createRemindersDao(this@MyApp) }
+
+            single {
+                AuthenticationViewModel(this@MyApp, preferences)
+            }
         }
 
         startKoin {

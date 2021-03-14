@@ -96,6 +96,7 @@ dependencies {
     implementation(Dependencies.Google.material)
     implementation(Dependencies.Androidx.recyclerView)
     implementation(Dependencies.Androidx.constraintLayout)
+    implementation(Dependencies.Androidx.coreKtx)
 
     implementation(Dependencies.Google.gson)
 

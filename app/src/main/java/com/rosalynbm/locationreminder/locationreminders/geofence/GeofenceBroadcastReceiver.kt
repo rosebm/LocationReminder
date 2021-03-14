@@ -1,19 +1,8 @@
 package com.rosalynbm.locationreminder.locationreminders.geofence
 
-import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import androidx.core.content.ContextCompat
-import com.google.android.gms.location.Geofence
-import com.google.android.gms.location.GeofencingEvent
-import com.google.android.gms.maps.model.LatLng
-import com.rosalynbm.locationreminder.MyApp
-import com.rosalynbm.locationreminder.R
-import com.rosalynbm.locationreminder.locationreminders.reminderslist.ReminderDataItem
-import com.rosalynbm.locationreminder.utils.GeofenceUtils
-import com.rosalynbm.locationreminder.utils.sendNotification
-import timber.log.Timber
 
 /**
  * Triggered by the Geofence.  Since we can have many Geofences at once, we pull the request
@@ -27,13 +16,11 @@ import timber.log.Timber
 
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
-
+    /**
+     * Receives the geofencing events at the background
+     */
     override fun onReceive(context: Context, intent: Intent) {
-        Timber.d("ROS onReceive ----->")
-//TODO: implement the onReceive method to receive the geofencing events at the background
         GeofenceTransitionsJobIntentService.enqueueWork(context, intent)
-
     }
-
 
 }

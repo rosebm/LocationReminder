@@ -13,6 +13,7 @@ object Versions {
     const val archLifecycle = "2.2.0"
     const val cardView = "1.0.0"
     const val constraint = "2.0.0-rc1"
+    const val androidXCoreKtx = "1.2.0"
     const val coroutines = "1.2.1"
     const val dexMaker = "2.12.1"
     const val fragment = "1.1.0-alpha07"
