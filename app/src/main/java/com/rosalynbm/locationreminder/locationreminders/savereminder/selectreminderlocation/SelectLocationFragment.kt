@@ -1,15 +1,18 @@
 package com.rosalynbm.locationreminder.locationreminders.savereminder.selectreminderlocation
 
-
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.location.Location
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.*
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.NavHostFragment
@@ -22,6 +25,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.snackbar.Snackbar
+import com.rosalynbm.locationreminder.BuildConfig
 import com.rosalynbm.locationreminder.R
 import com.rosalynbm.locationreminder.base.BaseFragment
 import com.rosalynbm.locationreminder.databinding.FragmentSelectLocationBinding
@@ -79,7 +84,6 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickLi
     }
 
     private fun onLocationSelected() {
-        Timber.d("ROS saving location (${selectedLocation?.latitude}, ${selectedLocation?.longitude})")
         NavHostFragment.findNavController(this).popBackStack()
     }
 
@@ -95,6 +99,21 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickLi
             if (grantResults.isNotEmpty() &&
                     grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                 getLastLocation()
+            } else {
+                // Display a snackbar explaining that the user needs location permissions in order to
+                // trigger the reminders
+                Snackbar.make(
+                    binding.root,
+                    R.string.permission_denied_explanation,
+                    Snackbar.LENGTH_INDEFINITE
+                )
+                    .setAction(R.string.settings) {
+                        startActivity(Intent().apply {
+                            action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                            data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        })
+                    }.show()
             }
         }
     }
@@ -122,6 +141,25 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickLi
 
     override fun onMapReady(googleMap: GoogleMap?) {
         map = googleMap
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return
+        }
+        map?.isMyLocationEnabled = true
+        map?.uiSettings?.isCompassEnabled = true
         setMapStyle(map)
         getLastLocation()
         setOnMapPoiClickListener()
@@ -144,7 +182,6 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickLi
                     .snippet(snippet)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
             )
-            Timber.d("ROS setOnMapLongClickListener")
 
             _viewModel.selectedPOI.value = poi
             _viewModel.reminderSelectedLocationStr.value = poi.name
@@ -170,7 +207,6 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickLi
                             .snippet(snippet)
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
             )
-            Timber.d("ROS setOnMapLongClickListener")
 
             locationSaveButton.visibility = View.VISIBLE
         }
@@ -195,15 +231,13 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickLi
                     .addOnSuccessListener { location : Location? ->
                         // Got last known location. In some rare situations this can be null.
                         location?.let {
-                            Timber.d("ROS lat = ${location.latitude}")
-                            Timber.d("ROS lng = ${location.longitude}")
                             latLng = LatLng(location.latitude, location.longitude)
 
                             map?.let {
-                                Timber.d("ROS move camera")
                                 it.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM_LEVEL))
                                 it.addMarker(MarkerOptions().position(latLng).title("Marker in user's last location"))
                             }
+                            Toast.makeText(requireContext(), "Please select a location", Toast.LENGTH_LONG).show()
                         }
                     }
         }

@@ -2,17 +2,23 @@ package com.rosalynbm.locationreminder.authentication
 
 import android.app.Activity
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.ErrorCodes
 import com.firebase.ui.auth.IdpResponse
-import com.google.firebase.auth.FirebaseAuth
+import com.google.android.material.snackbar.Snackbar
 import com.rosalynbm.locationreminder.BuildConfig
 import com.rosalynbm.locationreminder.R
 import com.rosalynbm.locationreminder.locationreminders.RemindersActivity
+import com.rosalynbm.locationreminder.utils.Variables
 import kotlinx.android.synthetic.main.activity_authentication.*
+import org.koin.android.ext.android.inject
 import timber.log.Timber
 
 
@@ -26,9 +32,11 @@ class AuthenticationActivity : AppCompatActivity(), View.OnClickListener {
         AuthUI.IdpConfig.EmailBuilder().build(),
         AuthUI.IdpConfig.GoogleBuilder().build(),
     )
+    private val authenticationViewModel: AuthenticationViewModel by inject()
+    private lateinit var preferences: SharedPreferences
 
     // Arbitrary request code to identify the request when the result is returned in onActivityResult
-    private val RC_SIGN_IN = 1101
+    private val SIGN_IN_REQUEST_CODE = 1101
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,18 +44,13 @@ class AuthenticationActivity : AppCompatActivity(), View.OnClickListener {
 
         authLoginButton.setOnClickListener(this)
         // init timber
-        //if (BuildConfig.DEBUG)
+        if (BuildConfig.DEBUG)
             Timber.plant(Timber.DebugTree())
-
-//         TODO: Implement the create account and sign in using FirebaseUI, use sign in using email and sign in using Google
-
-
-
-//          TODO: If the user was authenticated, send him to RemindersActivity
 
 //          TODO: a bonus is to customize the sign in flow to look nice using :
         //https://github.com/firebase/FirebaseUI-Android/blob/master/auth/README.md#custom-layout
 
+        observeAuthenticationState()
     }
 
     override fun onActivityResult(
@@ -56,19 +59,19 @@ class AuthenticationActivity : AppCompatActivity(), View.OnClickListener {
         data: Intent?
     ) {
         super.onActivityResult(requestCode, resultCode, data)
-        // RC_SIGN_IN is the request code you passed into startActivityForResult(...) when starting the sign in flow.
-        if (requestCode == RC_SIGN_IN) {
+        // SIGN_IN_REQUEST_CODE is the request code passed into startActivityForResult(...) when starting the sign in flow.
+        if (requestCode == SIGN_IN_REQUEST_CODE) {
             val response = IdpResponse.fromResultIntent(data)
-            Timber.d("ROS RC_SIGN_IN, result code $resultCode")
-            Timber.d("ROS RC_SIGN_IN, response ${response?.email}")
 
             // Successfully signed in
             when(resultCode) {
                 Activity.RESULT_OK -> {
+                    authenticationViewModel.saveRos(true)
+
                     val idpResponse = IdpResponse.fromResultIntent(data)
                     startActivity(
                         Intent(this, RemindersActivity::class.java)
-                            .putExtra("my_token", idpResponse!!.idpToken)
+                            .putExtra("my_token", idpResponse?.idpToken)
                     )
                     finish()
                 }
@@ -78,15 +81,16 @@ class AuthenticationActivity : AppCompatActivity(), View.OnClickListener {
                     // Sign in failed
                     if (response == null) {
                         // User pressed back button
-                        //showSnackbar(R.string.sign_in_cancelled)
+                        authLoginButton.snack(R.string.auth_sign_in_cancelled, Snackbar.LENGTH_LONG,{})
                         return
                     }
                     if (response.error?.errorCode == ErrorCodes.NO_NETWORK) {
-                        //showSnackbar(R.string.no_internet_connection)
+                        authLoginButton.snack(R.string.no_internet_connection, Snackbar.LENGTH_LONG,{})
                         return
+                    } else {
+                        authLoginButton.snack(R.string.unknown_error, Snackbar.LENGTH_LONG,{})
                     }
-                    //showSnackbar(R.string.unknown_error)
-                    Timber.e("ROS Sign-in error: ${response.error}")
+                    Timber.e("Sign-in error: ${response.error}")
                 }
             }
 
@@ -96,31 +100,63 @@ class AuthenticationActivity : AppCompatActivity(), View.OnClickListener {
     override fun onClick(view: View?) {
         when (view?.id) {
             R.id.authLoginButton -> {
-                Timber.d("ROS authLoginButton click")
-                val auth = FirebaseAuth.getInstance()
-                if (auth.currentUser != null) {
-                    Timber.d("ROS signed in")
-                    Timber.d("ROS signed as ${auth.currentUser?.email}")
-
-                    startActivity(
-                            Intent(this, RemindersActivity::class.java)
-                                    //.putExtra("my_token", auth.currentUser.)
-                    )
-                    finish()
-                } else {
-                    // not signed in
-                    Timber.d("ROS not signed in")
-
-                    // already signed in
-                    startActivityForResult(
-                            // Get an instance of AuthUI based on the default app
-                            AuthUI.getInstance()
-                                    .createSignInIntentBuilder()
-                                    .setAvailableProviders(providers)
-                                    .build(),
-                            RC_SIGN_IN)
-                }
+                if (Variables.isNetworkConnected)
+                    authenticateAndLogin()
+                else
+                    Toast.makeText(this, getString(R.string.no_internet_connection),
+                        Toast.LENGTH_LONG).show()
             }
         }
     }
+
+    private fun authenticateAndLogin() {
+        when (authenticationViewModel.authenticationState()) {
+            AuthenticationViewModel.AuthenticationState.AUTHENTICATED -> {
+                Timber.d("User signed in")
+
+                startReminderactivity()
+                finish()
+            }
+
+            AuthenticationViewModel.AuthenticationState.UNAUTHENTICATED -> {
+                // not signed in
+                Timber.d("User not signed in")
+
+                startActivityForResult(
+                    // Get an instance of AuthUI based on the default app
+                    AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setAvailableProviders(providers)
+                        .build(),
+                    SIGN_IN_REQUEST_CODE)
+            }
+
+            else ->
+                Timber.d(getString(R.string.invalid_authentication))
+        }
+    }
+
+    private fun observeAuthenticationState() {
+        var userAuthenticated = authenticationViewModel.getRos()
+
+        if (userAuthenticated) {
+             startReminderactivity()
+        }
+    }
+
+    private fun startReminderactivity() {
+        startActivity(
+            Intent(this, RemindersActivity::class.java)
+            //.putExtra("my_token", auth.currentUser.)
+        )
+    }
+
+    private inline fun View.snack(@StringRes messageRes: Int, length: Int = Snackbar.LENGTH_LONG, f: Snackbar.() -> Unit) {
+        val snack = Snackbar.make(this, messageRes, length)
+        snack.f()
+        snack.show()
+    }
+
 }
+
+

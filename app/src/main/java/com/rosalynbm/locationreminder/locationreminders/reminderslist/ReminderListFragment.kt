@@ -1,20 +1,27 @@
 package com.rosalynbm.locationreminder.locationreminders.reminderslist
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import androidx.databinding.DataBindingUtil
+import com.firebase.ui.auth.AuthUI
 import com.rosalynbm.locationreminder.R
+import com.rosalynbm.locationreminder.authentication.AuthenticationActivity
+import com.rosalynbm.locationreminder.authentication.AuthenticationViewModel
 import com.rosalynbm.locationreminder.base.BaseFragment
 import com.rosalynbm.locationreminder.base.NavigationCommand
 import com.rosalynbm.locationreminder.databinding.FragmentRemindersBinding
 import com.rosalynbm.locationreminder.utils.setDisplayHomeAsUpEnabled
 import com.rosalynbm.locationreminder.utils.setTitle
 import com.rosalynbm.locationreminder.utils.setup
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+
 
 class ReminderListFragment : BaseFragment() {
     //use Koin to retrieve the ViewModel instance
     override val _viewModel: RemindersListViewModel by viewModel()
+    private val authenticationViewModel: AuthenticationViewModel by inject()
     private lateinit var binding: FragmentRemindersBinding
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -64,14 +71,21 @@ class ReminderListFragment : BaseFragment() {
         val adapter = RemindersListAdapter {
         }
 
-//        setup the recycler view using the extension function
+        // Setup the recycler view using the extension function
         binding.reminderssRecyclerView.setup(adapter)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.logout -> {
-//                TODO: add the logout implementation
+                AuthUI.getInstance()
+                    .signOut(requireContext())
+                    .addOnCompleteListener {
+                        // User is now signed out
+                        authenticationViewModel.saveRos(false)
+                        startActivity(Intent(requireContext(), AuthenticationActivity::class.java))
+                        requireActivity().finish()
+                    }
             }
         }
         return super.onOptionsItemSelected(item)
@@ -80,7 +94,7 @@ class ReminderListFragment : BaseFragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-//        display logout as menu item
+        // Display logout as menu item
         inflater.inflate(R.menu.main_menu, menu)
     }
 
