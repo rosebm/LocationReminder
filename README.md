@@ -19,8 +19,11 @@ Download the project and run it on a device or emulator with at least Marshmallo
 
 Deliverables for this project.
 
-1.  
-2. 
+1. Account sign up and sign in flow using FirebaseUI, using email and sign in using Google
+2. If the user was authenticated, is sent to RemindersActivity; otherwise, is going to be sent to Login
+3. Hability to create reminders
+4. Map customized 
+5. When user enters a geofence area, a notification will be sent to the user with the reminder
 
 ## Sources
 
