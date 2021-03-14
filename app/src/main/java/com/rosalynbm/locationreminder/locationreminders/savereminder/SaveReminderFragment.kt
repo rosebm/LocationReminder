@@ -2,6 +2,7 @@ package com.rosalynbm.locationreminder.locationreminders.savereminder
 
 import android.Manifest
 import android.annotation.TargetApi
+import android.app.PendingIntent
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
@@ -14,16 +15,18 @@ import android.view.ViewGroup
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.*
 import com.google.android.material.snackbar.Snackbar
 import com.rosalynbm.locationreminder.BuildConfig
 import com.rosalynbm.locationreminder.R
 import com.rosalynbm.locationreminder.base.BaseFragment
 import com.rosalynbm.locationreminder.base.NavigationCommand
 import com.rosalynbm.locationreminder.databinding.FragmentSaveReminderBinding
+import com.rosalynbm.locationreminder.locationreminders.geofence.GeofenceBroadcastReceiver
+import com.rosalynbm.locationreminder.locationreminders.geofence.GeofenceErrorMessages
+import com.rosalynbm.locationreminder.locationreminders.geofence.GeofenceRepository
 import com.rosalynbm.locationreminder.locationreminders.reminderslist.ReminderDataItem
+import com.rosalynbm.locationreminder.utils.GeofenceUtils
 import com.rosalynbm.locationreminder.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 import timber.log.Timber
@@ -32,7 +35,7 @@ class SaveReminderFragment : BaseFragment() {
     //Get the view model this time as a single to be shared with the another fragment
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSaveReminderBinding
-    private var reminderItem: ReminderDataItem? = null
+    private lateinit var geofencingClient: GeofencingClient
     private val runningQOrLater = android.os.Build.VERSION.SDK_INT >=
             android.os.Build.VERSION_CODES.Q
 
@@ -42,6 +45,12 @@ class SaveReminderFragment : BaseFragment() {
         private const val LOCATION_PERMISSION_INDEX = 0
         private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 0
         private const val REQUEST_TURN_DEVICE_LOCATION_ON = 20
+    }
+
+    private val geofencePendingIntent: PendingIntent by lazy {
+        val intent = Intent(requireContext(), GeofenceBroadcastReceiver::class.java)
+        //intent.action = ACTION_GEOFENCE_EVENT
+        PendingIntent.getBroadcast(requireContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
     override fun onCreateView(
@@ -82,16 +91,19 @@ class SaveReminderFragment : BaseFragment() {
             Timber.d("ROS saveReminder clicked")
             requestForegroundAndBackgroundLocationPermissions()
         }
+
+        // main entry point for interacting with the geofencing APIs
+        geofencingClient = LocationServices.getGeofencingClient(requireContext())
     }
 
     private fun createReminder(): ReminderDataItem {
         val title = _viewModel.reminderTitle.value
-        val description = _viewModel.reminderDescription
+        val description = _viewModel.reminderDescription.value
         val location = _viewModel.reminderSelectedLocationStr.value
-        val latitude = _viewModel.latitude
+        val latitude = _viewModel.latitude.value
         val longitude = _viewModel.longitude.value
 
-        return ReminderDataItem(title, description.toString(), location, latitude.value, longitude)
+        return ReminderDataItem(title, description, location, latitude, longitude)
     }
 
     /**
@@ -167,7 +179,10 @@ class SaveReminderFragment : BaseFragment() {
     @TargetApi(29)
     private fun requestForegroundAndBackgroundLocationPermissions() {
         if (foregroundAndBackgroundLocationPermissionApproved()) {
-            createReminder().let { it1 -> _viewModel.validateAndSaveReminder(it1) }
+            createReminder().let { reminder ->
+                _viewModel.validateAndSaveReminder(reminder)
+                buildGeofence(reminder)?.let { requestGeofence(it) }
+            }
         }
 
         var permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -230,4 +245,82 @@ class SaveReminderFragment : BaseFragment() {
             }
         }
     }
+
+/*    private fun addGeofence() {
+        if (_viewModel.geofenceIsActive()) return
+
+        val currentGeofenceIndex = _viewModel.nextGeofenceIndex()
+        *//*if (currentGeofenceIndex >= GeofencingConstants.NUM_LANDMARKS) {
+            removeGeofences()
+            _viewModel.geofenceActivated()
+            return
+        }*//*
+
+        val currendGeofenceData = Geo
+    }*/
+
+    private fun buildGeofence(reminderDataItem: ReminderDataItem): Geofence? {
+
+        return reminderDataItem.latitude?.let {latitude ->
+            reminderDataItem.longitude?.let { longitude ->
+                Geofence.Builder()
+                    .setRequestId(reminderDataItem.id)
+                    .setCircularRegion(
+                        latitude,
+                        longitude,
+                        GeofenceUtils.GeofenceConstants.GEOFENCE_RADIUS_IN_METERS
+                    )
+                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+                    .setExpirationDuration(Geofence.NEVER_EXPIRE) // will exist until the user removes it.
+                    .build()
+            }
+        }
+    }
+
+    private fun requestGeofence(geofence: Geofence) {
+
+        /*val geofencingRequest = GeofencingRequest.Builder()
+            .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+            .addGeofence(geofence)
+            .build()*/
+        val geofencingRequest = GeofenceRepository.buildGeofenceRequest(geofence)
+
+        geofencingClient.removeGeofences(geofencePendingIntent)?.run {
+            addOnCompleteListener {
+                if (ActivityCompat.checkSelfPermission(
+                        requireContext(),
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    //return
+                }
+                geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
+                    addOnSuccessListener {
+                       /* Toast.makeText(requireActivity(), "geofences_added",
+                            Toast.LENGTH_SHORT)
+                            .show()*/
+                        Timber.e("ROS Add Geofence ${geofence?.requestId}")
+                        //viewModel.geofenceActivated()
+                    }
+                    addOnFailureListener {
+                       /* Toast.makeText(requireContext(), R.string.geofences_not_added,
+                            Toast.LENGTH_SHORT).show()*/
+                        if ((it.message != null)) {
+                            Timber.w("ROS geofence failure ${it.message}")
+                        }
+                        //failure(GeofenceErrorMessages.getErrorString(context, it))
+                    }
+                }
+            }
+        }
+    }
+
+
 }
