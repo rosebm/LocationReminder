@@ -39,6 +39,6 @@ object Versions {
     const val hamcrest = "1.3"
     const val junit = "4.12"
     const val playServices = "17.0.0"
-    const val robolectric = "4.3-beta-1"
+    const val robolectric = "4.5.1"
 
 }

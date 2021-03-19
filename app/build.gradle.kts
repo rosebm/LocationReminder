@@ -64,19 +64,19 @@ android {
 
     kotlinOptions { jvmTarget = JavaVersion.VERSION_1_8.toString() }
 
-    /*testOptions.unitTests {
-        includeAndroidResources = true
-        returnDefaultValues = true
-    }
-
-    dataBinding {
-        enabled = true
-        enabledForTests = true
-    }*/
-
     buildFeatures {
         dataBinding = true
     }
+
+    testOptions.unitTests.apply {
+        isIncludeAndroidResources = true
+        isReturnDefaultValues = true
+    }
+
+/*    dataBinding {
+        enabled = true
+        enabledForTests = true
+    }*/
 
 }
 
