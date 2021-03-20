@@ -16,13 +16,10 @@ import kotlinx.coroutines.Dispatchers
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runBlockingTest
-import kotlinx.coroutines.test.setMain
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.core.IsNull.nullValue
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -34,8 +31,6 @@ import org.robolectric.annotation.Config
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [Build.VERSION_CODES.O_MR1])
 class SaveReminderViewModelTest {
-
-    //TODO: provide testing to the SaveReminderView and its live data objects
 
     // Needed to test code with LiveData. If we do not use this, we will get the
     // RuntimeException related to Looper in Android.
@@ -49,7 +44,6 @@ class SaveReminderViewModelTest {
     @ExperimentalCoroutinesApi
     @get:Rule
     var mainCoroutineRule = MainCoroutineRule()
-
 
     // Subject under test
     private lateinit var saveReminderViewModel: SaveReminderViewModel
@@ -69,19 +63,6 @@ class SaveReminderViewModelTest {
         saveReminderViewModel = SaveReminderViewModel(ApplicationProvider.getApplicationContext(),
             fakeDataSource
         )
-    }
-
-    @ExperimentalCoroutinesApi
-    @Before
-    fun setupDispatcher() {
-        Dispatchers.setMain(testDispatcher)
-    }
-
-    @ExperimentalCoroutinesApi
-    @After
-    fun tearDownDispatcher() {
-        Dispatchers.resetMain()
-        testDispatcher.cleanupTestCoroutines()
     }
 
     @Test
@@ -163,7 +144,7 @@ class SaveReminderViewModelTest {
         mainCoroutineRule.pauseDispatcher()
 
         // WHEN saving reminder
-        saveReminderViewModel.validateAndSaveReminder(reminder)
+        saveReminderViewModel.saveReminder(reminder)
 
         var showLoading = saveReminderViewModel.showLoading.getOrAwaitValue()
         assertThat(showLoading, `is`(true))
@@ -177,7 +158,5 @@ class SaveReminderViewModelTest {
         assertThat(saveReminderViewModel.showToast.getOrAwaitValue() ,
             `is` (context.getString(R.string.reminder_saved)))
     }
-
-
 
 }
