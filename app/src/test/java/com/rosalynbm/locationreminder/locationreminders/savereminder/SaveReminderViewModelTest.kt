@@ -121,13 +121,13 @@ class SaveReminderViewModelTest {
     fun givenNullData_whenValidateAndSaveReminder_shouldReturnErrorNoLocation() {
 
         // GIVEN reminder with null location
-        val reminderEmptyLocation = ReminderDataItem("Reminder 1", "Hi, remind that",
+        val emptyLocationReminder = ReminderDataItem("Reminder 1", "Hi, remind that",
             null, null, null,
             "1000"
         )
 
         // WHEN saving reminder
-        val result = saveReminderViewModel.validateEnteredData(reminderEmptyLocation)
+        val result = saveReminderViewModel.validateEnteredData(emptyLocationReminder)
 
         //THEN - Show snackBar with error message Select Location
         assertThat(result, `is` (false))
@@ -138,13 +138,13 @@ class SaveReminderViewModelTest {
     fun givenNullData_whenValidateAndSaveReminder_shouldReturnErrorNoTitle() {
 
         // GIVEN reminder with null location
-        val reminderEmptyLocation = ReminderDataItem(null, "Hi, remind that",
+        val emptyTitleReminder = ReminderDataItem(null, "Hi, remind that",
             "American Airlines Arena", 25.781339, -80.187948,
             "1000"
         )
 
         // WHEN saving reminder
-        val result = saveReminderViewModel.validateEnteredData(reminderEmptyLocation)
+        val result = saveReminderViewModel.validateEnteredData(emptyTitleReminder)
 
         //THEN - Show snackBar with error message Enter title
         assertThat(result, `is` (false))
@@ -152,18 +152,19 @@ class SaveReminderViewModelTest {
     }
 
     @Test
-    fun givenData_whenSavingReminder_CheckLoading() = mainCoroutineRule.runBlockingTest {
+    fun `givenData WhenSavingReminder CheckLoading`() = mainCoroutineRule.runBlockingTest {
         //GIVEN a reminder
         val reminder = ReminderDataItem("Reminder 1", "Hi, remind that",
             "American Airlines Arena", 25.781339, -80.187948,
-            "1000"
+            "1001"
         )
 
-        // Pause dispatcher so we can verify initial values
+        // Pause dispatcher so we can see the loading status
         mainCoroutineRule.pauseDispatcher()
 
         // WHEN saving reminder
-        saveReminderViewModel.saveReminder(reminder)
+        saveReminderViewModel.validateAndSaveReminder(reminder)
+
         var showLoading = saveReminderViewModel.showLoading.getOrAwaitValue()
         assertThat(showLoading, `is`(true))
 
@@ -176,5 +177,7 @@ class SaveReminderViewModelTest {
         assertThat(saveReminderViewModel.showToast.getOrAwaitValue() ,
             `is` (context.getString(R.string.reminder_saved)))
     }
+
+
 
 }
