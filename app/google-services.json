@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "102566271177",
+    "project_id": "location-reminder-a8c59",
+    "storage_bucket": "location-reminder-a8c59.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:102566271177:android:f31bb1dc43726d128c1518",
+        "android_client_info": {
+          "package_name": "com.rosalynbm.locationreminder"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "102566271177-boaf54421imvms5jogp0psgl5is5lgvv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rosalynbm.locationreminder",
+            "certificate_hash": "0da12ebd2b190310e2d13e37bdf1dbd0d7803c5c"
+          }
+        },
+        {
+          "client_id": "102566271177-cehri4pmvrh3sp42c70n8rf55dht6i6f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZvIpJYq2dgv3QohyvXLeiQMSHfIltgDk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "102566271177-cehri4pmvrh3sp42c70n8rf55dht6i6f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
