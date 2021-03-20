@@ -11,6 +11,8 @@ import java.util.ArrayList
 //ros class FakeDataSource(var reminders: MutableList<ReminderDTO>? = mutableListOf()) : ReminderDataSource {
 open class FakeDataSource : ReminderDataSource {
 
+    private var returnError = false
+
     private val reminder1 = ReminderDTO("reminder 1", "description 1",
         "American Airlines Arena", 25.781374, -80.187917, "1")
     private val reminder2 = ReminderDTO("reminder 2", "description 2",
@@ -20,9 +22,10 @@ open class FakeDataSource : ReminderDataSource {
     private val reminders: MutableList<ReminderDTO> = mutableListOf(reminder1, reminder2, reminder3)
 
     override suspend fun getReminders(): Result<List<ReminderDTO>> {
-        reminders.let { return Result.Success(ArrayList(it)) }
+        if (returnError)
+            return Result.Error("Reminder not found", 404)
 
-        //return Result.Error("Reminders not found", 404)
+        reminders.let { return Result.Success(ArrayList(it)) }
     }
 
     override suspend fun saveReminder(reminder: ReminderDTO) {
@@ -40,6 +43,10 @@ open class FakeDataSource : ReminderDataSource {
 
     override suspend fun deleteAllReminders() {
         reminders.clear()
+    }
+
+    fun setForceError(value: Boolean) {
+        returnError = value
     }
 
 
