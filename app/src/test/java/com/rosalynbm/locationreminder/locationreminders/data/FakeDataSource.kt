@@ -8,7 +8,6 @@ import java.util.ArrayList
  * FakeDataSource acts as a test double to the LocalDataSource. Replaces the Data Layer
  * to test the app in isolation.
  */
-//ros class FakeDataSource(var reminders: MutableList<ReminderDTO>? = mutableListOf()) : ReminderDataSource {
 open class FakeDataSource : ReminderDataSource {
 
     private var returnError = false
