@@ -43,10 +43,10 @@ class AuthenticationViewModel(private val context: Context,
         return authenticated
     }
 
-    fun saveRos(valu: Boolean) {
-        sharedPref.edit().putBoolean("user_authenticate_state", valu).apply()
+    fun setUserAuthenticated(value: Boolean) {
+        sharedPref.edit().putBoolean("user_authenticate_state", value).apply()
     }
 
-    fun getRos() = sharedPref.getBoolean("user_authenticate_state", false)
+    fun isUserAuthenticated() = sharedPref.getBoolean("user_authenticate_state", false)
 
 }

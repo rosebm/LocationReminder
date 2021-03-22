@@ -15,13 +15,13 @@ object Versions {
     const val constraint = "2.0.0-rc1"
     const val androidXCoreKtx = "1.2.0"
     const val coroutines = "1.2.1"
-    const val dexMaker = "2.12.1"
+    const val dexMakerMockito = "2.28.1"
     const val fragment = "1.1.0-alpha07"
     const val googleGson = "2.8.5"
     const val googleServices = "4.3.5"
     const val gradle = "4.0.1"
     const val material = "1.1.0"
-    const val mockito = "2.8.9"
+    const val mockito = "3.8.0"
     const val koin = "2.0.1"
     const val kotlin = "1.3.72"
     const val recyclerView = "1.1.0"
@@ -39,6 +39,6 @@ object Versions {
     const val hamcrest = "1.3"
     const val junit = "4.12"
     const val playServices = "17.0.0"
-    const val robolectric = "4.3-beta-1"
+    const val robolectric = "4.5.1"
 
 }

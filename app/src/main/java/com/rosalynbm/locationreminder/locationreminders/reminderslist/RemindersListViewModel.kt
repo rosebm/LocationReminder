@@ -1,6 +1,7 @@
 package com.rosalynbm.locationreminder.locationreminders.reminderslist
 
 import android.app.Application
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.rosalynbm.locationreminder.base.BaseViewModel
@@ -57,4 +58,23 @@ class RemindersListViewModel(
     private fun invalidateShowNoData() {
         showNoData.value = remindersList.value == null || remindersList.value!!.isEmpty()
     }
+
+
+    // -------------------------
+
+    @VisibleForTesting
+    fun setShowErrorMessage(errorMessage: String) {
+        showErrorMessage.value = errorMessage
+    }
+
+    @VisibleForTesting
+    fun setShowToastMessage(message: String) {
+        showToast.value = message
+    }
+
+    @VisibleForTesting
+    fun setShowSnackBar(message: String) {
+        showSnackBar.value = message
+    }
+
 }

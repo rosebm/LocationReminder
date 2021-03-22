@@ -283,7 +283,7 @@ class SaveReminderFragment : BaseFragment() {
                     if ((it.message != null)) {
                         Timber.w("Geofence failure ${it.message}")
                     }
-                    //ros uncomment failure(GeofenceErrorMessages.getErrorString(context, it))
+                    //failure(GeofenceErrorMessages.getErrorString(context, it))
                 }
         }
 
@@ -305,7 +305,7 @@ class SaveReminderFragment : BaseFragment() {
             }
             addOnFailureListener {
                 Timber.d(getString(R.string.geofences_not_removed))
-                //ros failure(GeofenceErrorMessages.getErrorString(context, it))
+                //failure(GeofenceErrorMessages.getErrorString(context, it))
             }
         }
     }

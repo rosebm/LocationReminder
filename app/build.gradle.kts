@@ -64,19 +64,19 @@ android {
 
     kotlinOptions { jvmTarget = JavaVersion.VERSION_1_8.toString() }
 
-    /*testOptions.unitTests {
-        includeAndroidResources = true
-        returnDefaultValues = true
-    }
-
-    dataBinding {
-        enabled = true
-        enabledForTests = true
-    }*/
-
     buildFeatures {
         dataBinding = true
     }
+
+    testOptions.unitTests.apply {
+        isIncludeAndroidResources = true
+        isReturnDefaultValues = true
+    }
+
+/*    dataBinding {
+        enabled = true
+        enabledForTests = true
+    }*/
 
 }
 
@@ -123,6 +123,16 @@ dependencies {
     implementation(Dependencies.Koin.android)
     implementation(Dependencies.Koin.viewModel)
 
+    implementation(Dependencies.firebaseUi)
+    // Maps & Geofencing
+    implementation(Dependencies.PlayServices.location)
+    implementation(Dependencies.PlayServices.maps)
+    implementation(Dependencies.timber)
+    // Once https://issuetracker.google.com/127986458 is fixed this can be testImplementation
+    implementation(Dependencies.Androidx.androidxFragmentTesting)
+    implementation(Dependencies.Androidx.testCore)
+    implementation(Dependencies.Androidx.fragment)
+
 
     // Dependencies for local unit tests
     testImplementation(Dependencies.junit)
@@ -132,6 +142,7 @@ dependencies {
     testImplementation(Dependencies.Kotlin.coroutineTest)
     testImplementation(Dependencies.Roboelectric.roboelectric)
     testImplementation(Dependencies.Google.truth)
+    // Required if you want to use Mockito for unit tests
     testImplementation(Dependencies.mockitoCore)
 
     // AndroidX Test - JVM testing
@@ -152,18 +163,11 @@ dependencies {
     androidTestImplementation(Dependencies.Androidx.espressoIntents)
     androidTestImplementation(Dependencies.Androidx.espressoIdlingConcurrent)
     androidTestImplementation(Dependencies.junit)
-    // Once https://issuetracker.google.com/127986458 is fixed this can be testImplementation
-    implementation(Dependencies.Androidx.androidxFragmentTesting)
-    implementation(Dependencies.Androidx.testCore)
-    implementation(Dependencies.Androidx.fragment)
+
     androidTestImplementation(Dependencies.mockitoCore)
-    androidTestImplementation(Dependencies.linkedinDexmakerMockito)
+    // Commented because I was getting this error: https://github.com/InsertKoinIO/koin/issues/287
+    //androidTestImplementation(Dependencies.linkedinDexmakerMockito)
     androidTestImplementation(Dependencies.Koin.test) { exclude ("org.mockito", "mockito")}
 
-    implementation(Dependencies.firebaseUi)
-    //Maps & Geofencing
-    implementation(Dependencies.PlayServices.location)
-    implementation(Dependencies.PlayServices.maps)
 
-    implementation(Dependencies.timber)
 }

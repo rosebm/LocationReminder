@@ -65,7 +65,7 @@ object Dependencies {
         const val coroutineTest = "org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.coroutines}"
     }
 
-    const val linkedinDexmakerMockito = "com.linkedin.dexmaker:dexmaker-mockito:${Versions.dexMaker}"
+    const val linkedinDexmakerMockito = "com.linkedin.dexmaker:dexmaker-mockito:${Versions.dexMakerMockito}"
     const val mockitoCore = "org.mockito:mockito-core:${Versions.mockito}"
 
     object PlayServices {

@@ -3,6 +3,7 @@ package com.rosalynbm.locationreminder.locationreminders.reminderslist
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
+import androidx.annotation.VisibleForTesting
 import androidx.databinding.DataBindingUtil
 import com.firebase.ui.auth.AuthUI
 import com.rosalynbm.locationreminder.R
@@ -23,6 +24,7 @@ class ReminderListFragment : BaseFragment() {
     override val _viewModel: RemindersListViewModel by viewModel()
     private val authenticationViewModel: AuthenticationViewModel by inject()
     private lateinit var binding: FragmentRemindersBinding
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -82,7 +84,7 @@ class ReminderListFragment : BaseFragment() {
                     .signOut(requireContext())
                     .addOnCompleteListener {
                         // User is now signed out
-                        authenticationViewModel.saveRos(false)
+                        authenticationViewModel.setUserAuthenticated(false)
                         startActivity(Intent(requireContext(), AuthenticationActivity::class.java))
                         requireActivity().finish()
                     }
@@ -96,6 +98,22 @@ class ReminderListFragment : BaseFragment() {
         super.onCreateOptionsMenu(menu, inflater)
         // Display logout as menu item
         inflater.inflate(R.menu.main_menu, menu)
+    }
+
+    // -------------------------
+    @VisibleForTesting
+    fun showErrorMessage(errorMessage: String){
+        _viewModel.setShowErrorMessage(errorMessage)
+    }
+
+    @VisibleForTesting
+    fun showToastMessage(message: String) {
+        _viewModel.setShowToastMessage(message)
+    }
+
+    @VisibleForTesting
+    fun showSnackBar(message: String) {
+        _viewModel.setShowSnackBar(message)
     }
 
 }

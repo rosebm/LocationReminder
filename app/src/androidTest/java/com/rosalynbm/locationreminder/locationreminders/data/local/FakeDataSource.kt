@@ -1,5 +1,6 @@
-package com.rosalynbm.locationreminder.locationreminders.data
+package com.rosalynbm.locationreminder.locationreminders.data.local
 
+import com.rosalynbm.locationreminder.locationreminders.data.ReminderDataSource
 import com.rosalynbm.locationreminder.locationreminders.data.dto.ReminderDTO
 import com.rosalynbm.locationreminder.locationreminders.data.dto.Result
 import java.util.ArrayList
