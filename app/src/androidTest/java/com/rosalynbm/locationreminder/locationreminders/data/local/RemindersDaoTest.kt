@@ -1,17 +1,19 @@
 package com.rosalynbm.locationreminder.locationreminders.data.local
 
 import android.content.Context
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.rosalynbm.locationreminder.locationreminders.data.dto.ReminderDTO
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
@@ -26,10 +28,15 @@ class RemindersDaoTest {
     private lateinit var reminderDao : RemindersDao
     private lateinit var database : RemindersDatabase
 
+    // Executes each task synchronously using Architecture Components.
+    @get:Rule
+    var instantExecutorRule = InstantTaskExecutorRule()
+
     @Before
     fun createDb() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        // In-memory version of the database
+        // Using an in-memory database so that the information stored here disappears when the
+        // process is killed.
         database = Room.inMemoryDatabaseBuilder(context,
                 RemindersDatabase::class.java).allowMainThreadQueries().build()
 
@@ -43,7 +50,7 @@ class RemindersDaoTest {
     }
 
     @Test
-    fun getReminders() = runBlocking {
+    fun getReminders() = runBlockingTest {
         val reminder = ReminderDTO("reminder 1", "description 1",
             "American Airlines Arena", 25.781374, -80.187917, "1")
         reminderDao.saveReminder(reminder)
@@ -54,7 +61,7 @@ class RemindersDaoTest {
     }
 
     @Test
-    fun saveReminder() = runBlocking {
+    fun saveReminder() = runBlockingTest {
         val reminder = ReminderDTO("reminder 1", "description 1",
         "American Airlines Arena", 25.781374, -80.187917, "1")
         reminderDao.saveReminder(reminder)
@@ -67,7 +74,7 @@ class RemindersDaoTest {
     }
 
     @Test
-    fun getRemindersById() = runBlocking {
+    fun getRemindersById() = runBlockingTest {
         val reminder1 = ReminderDTO("reminder 1", "description 1",
             "American Airlines Arena", 25.781374, -80.187917, "1")
         val reminder2 = ReminderDTO("reminder 2", "description 2",
@@ -80,7 +87,7 @@ class RemindersDaoTest {
     }
 
     @Test
-    fun deleteAllReminders() = runBlocking {
+    fun deleteAllReminders() = runBlockingTest {
         val reminder1 = ReminderDTO("reminder 1", "description 1",
             "American Airlines Arena", 25.781374, -80.187917, "1")
         val reminder2 = ReminderDTO("reminder 2", "description 2",

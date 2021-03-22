@@ -66,7 +66,7 @@ class AuthenticationActivity : AppCompatActivity(), View.OnClickListener {
             // Successfully signed in
             when(resultCode) {
                 Activity.RESULT_OK -> {
-                    authenticationViewModel.saveRos(true)
+                    authenticationViewModel.setUserAuthenticated(true)
 
                     val idpResponse = IdpResponse.fromResultIntent(data)
                     startActivity(
@@ -114,7 +114,7 @@ class AuthenticationActivity : AppCompatActivity(), View.OnClickListener {
             AuthenticationViewModel.AuthenticationState.AUTHENTICATED -> {
                 Timber.d("User signed in")
 
-                startReminderactivity()
+                startReminderActivity()
                 finish()
             }
 
@@ -137,14 +137,14 @@ class AuthenticationActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun observeAuthenticationState() {
-        var userAuthenticated = authenticationViewModel.getRos()
+        val userAuthenticated = authenticationViewModel.isUserAuthenticated()
 
         if (userAuthenticated) {
-             startReminderactivity()
+            startReminderActivity()
         }
     }
 
-    private fun startReminderactivity() {
+    private fun startReminderActivity() {
         startActivity(
             Intent(this, RemindersActivity::class.java)
             //.putExtra("my_token", auth.currentUser.)
