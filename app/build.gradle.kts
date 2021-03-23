@@ -164,6 +164,8 @@ dependencies {
     androidTestImplementation(Dependencies.Androidx.espressoIdlingConcurrent)
     androidTestImplementation(Dependencies.junit)
 
+    //androidTestImplementation(Dependencies.mockitoAndroid)
+
     androidTestImplementation(Dependencies.mockitoCore)
     // Commented because I was getting this error: https://github.com/InsertKoinIO/koin/issues/287
     //androidTestImplementation(Dependencies.linkedinDexmakerMockito)

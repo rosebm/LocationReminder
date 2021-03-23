@@ -67,6 +67,7 @@ object Dependencies {
 
     const val linkedinDexmakerMockito = "com.linkedin.dexmaker:dexmaker-mockito:${Versions.dexMakerMockito}"
     const val mockitoCore = "org.mockito:mockito-core:${Versions.mockito}"
+    const val mockitoAndroid = "org.mockito:mockito-android:${Versions.mockito}"
 
     object PlayServices {
         //Maps & Geofencing

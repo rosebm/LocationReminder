@@ -31,6 +31,9 @@ import java.util.UUID
  *
  * Since this application only uses fragments, the resource only checks the fragments and their
  * children instead of the whole view tree.
+ *
+ * If the app is idle, Espresso know it can continue testing.
+ * If the app is working, Espresso will wait until die
  */
 class DataBindingIdlingResource : IdlingResource {
     // list of registered callbacks

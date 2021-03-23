@@ -47,10 +47,6 @@ import org.mockito.Mockito.verify
 @MediumTest
 class ReminderListFragmentTest: KoinTest {
 
-//    TODO: test the navigation of the fragments.
-//    TODO: test the displayed data on the UI.
-//    TODO: add testing for the error messages.
-
     private lateinit var database: RemindersDatabase
     private lateinit var reminderDataSource: ReminderDataSource
     private val fakeDataSource: FakeDataSource by inject()
@@ -146,7 +142,6 @@ class ReminderListFragmentTest: KoinTest {
 
     @Test
     fun givenMessage_DisplayToastMessage() {
-
         //GIVEN - message
         val message = "No internet connection"
 
@@ -207,6 +202,6 @@ class ReminderListFragmentTest: KoinTest {
         single {
             FakeDataSource()
         }
-
     }
+
 }
