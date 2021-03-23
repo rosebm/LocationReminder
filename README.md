@@ -27,3 +27,8 @@ Deliverables for this project.
 
 ## Sources
 
+![no_data](https://user-images.githubusercontent.com/6003620/112078425-c98e6c00-8b54-11eb-89ab-d8215e9255dc.png)
+
+![styled_map](https://user-images.githubusercontent.com/6003620/112078434-cd21f300-8b54-11eb-8b02-d054c520fe81.png)
+
+![reminder_list](https://user-images.githubusercontent.com/6003620/112078463-dad77880-8b54-11eb-9372-bd499c9ee8dd.png)
