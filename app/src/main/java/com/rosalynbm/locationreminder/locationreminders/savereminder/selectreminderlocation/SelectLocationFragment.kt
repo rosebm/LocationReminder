@@ -1,6 +1,7 @@
 package com.rosalynbm.locationreminder.locationreminders.savereminder.selectreminderlocation
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -16,7 +17,8 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.NavHostFragment
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -98,7 +100,7 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickLi
         if (requestCode == PERMISSION_ID) {
             if (grantResults.isNotEmpty() &&
                     grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                getLastLocation()
+                enableMyLocation()
             } else {
                 // Display a snackbar explaining that the user needs location permissions in order to
                 // trigger the reminders
@@ -149,14 +151,52 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickLi
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            return
+            requestPermissions()
+        } else {
+            enableMyLocation()
         }
-        map?.isMyLocationEnabled = true
-        map?.uiSettings?.isCompassEnabled = true
+
         setMapStyle(map)
-        getLastLocation()
         setOnMapPoiClickListener()
         //setOnMapLongClickListener()
+    }
+
+    private fun isPermissionGranted(): Boolean {
+        return ActivityCompat.checkSelfPermission(requireContext(),
+            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun enableMyLocation() {
+        var latLng: LatLng
+
+        if (isPermissionGranted()) {
+            map?.isMyLocationEnabled = true
+
+            // Subscribe to location changes
+            fusedLocationProviderClient.lastLocation
+                .addOnSuccessListener { location : Location? ->
+                    // Got last known location. In some rare situations this can be null.
+                    location?.let {
+                        latLng = LatLng(location.latitude, location.longitude)
+
+                        map?.let {
+                            it.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM_LEVEL))
+                            it.addMarker(MarkerOptions().position(latLng).title("Marker in user's last location"))
+                        }
+                        Toast.makeText(requireContext(), "Please select a location", Toast.LENGTH_LONG).show()
+                    }
+                }
+
+            getLastLocation()
+        }
+        else {
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                REQUEST_LOCATION_PERMISSION
+            )
+        }
     }
 
     private fun setOnMapPoiClickListener() {
@@ -213,13 +253,31 @@ class SelectLocationFragment: BaseFragment(), OnMapReadyCallback, View.OnClickLi
         }
     }
 
+    private fun isForegroundPermissionApproved(): Boolean {
+        if (ActivityCompat.checkSelfPermission(requireContext(),
+            Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        ) {
+            map?.isMyLocationEnabled = true
+            return true
+        }
+
+        return false
+    }
+
+    /**
+     * Method checks if foreground permissions approved.
+     */
+    @SuppressLint("MissingPermission")
     private fun checkPermissionsAndRetrieveLocation() {
+        val provideRationale = isForegroundPermissionApproved()
         var latLng: LatLng
 
-        if (ActivityCompat.checkSelfPermission(requireContext(),
-                        Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        // If the user denied a previous request, but didn't check "Don't ask again", provide
+        // additional rationale.
+        if (provideRationale) {
             requestPermissions()
         } else {
+            // Subscribe to location changes
             fusedLocationProviderClient.lastLocation
                     .addOnSuccessListener { location : Location? ->
                         // Got last known location. In some rare situations this can be null.
